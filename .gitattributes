@@ -1,0 +1,9 @@
+# Força LF para arquivos de texto
+* text=auto eol=lf
+
+# Não converte arquivos binários
+*.png -text
+*.jpg -text
+*.jpeg -text
+*.gif -text
+*.pdf -text
