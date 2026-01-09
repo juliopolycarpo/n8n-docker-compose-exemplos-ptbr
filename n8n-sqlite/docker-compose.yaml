@@ -1,6 +1,12 @@
 # n8n-docker-compose-exemplos-ptbr
 #   - n8n-sqlite docker compose
 services:
+  n8n-init:
+    image: busybox
+    command: chown -R 1000:1000 /data
+    volumes:
+      - ./data:/data
+    restart: "no"
   n8n:
     image: n8nio/n8n:${N8N_VERSION:-latest}
     container_name: n8n
