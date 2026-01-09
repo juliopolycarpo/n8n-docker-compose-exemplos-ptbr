@@ -62,9 +62,11 @@ Este repositório contém **exemplos prontos e documentados** de configurações
 
 3. **Configure as variáveis de ambiente:**
    ```bash
-   cp .env.example .env
    # Edite o arquivo .env com suas configurações
+   nano .env   # ou use seu editor preferido
    ```
+   
+   > 💡 **Dica:** Consulte o arquivo `.env.example` para ver exemplos detalhados de cada variável.
 
 4. **Inicie o n8n:**
    ```bash
@@ -83,11 +85,16 @@ Este repositório contém **exemplos prontos e documentados** de configurações
 ```
 n8n-docker-compose-exemplos-ptbr/
 ├── n8n-sqlite/                 # Exemplo básico com SQLite
-│   ├── docker-compose.yaml
-│   ├── .env.example
-│   └── README.md
+│   ├── docker-compose.yaml     # Configuração do container
+│   ├── .env                    # Variáveis de ambiente (edite este!)
+│   └── .env.example            # Referência com exemplos detalhados
 └── README.md
 ```
+
+| Arquivo | Propósito |
+|---------|----------|
+| `.env` | Configuração ativa - **edite este arquivo** |
+| `.env.example` | Referência com exemplos e explicações detalhadas |
 
 ---
 
