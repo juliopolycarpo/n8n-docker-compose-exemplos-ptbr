@@ -118,7 +118,7 @@ Contribuições são bem-vindas! Se você tem um exemplo de configuração que g
 
 ---
 
-## � Créditos e Agradecimentos
+## 🟢 Créditos e Agradecimentos
 
 Este projeto é possível graças às seguintes tecnologias e comunidades:
 
@@ -153,7 +153,7 @@ Este projeto é possível graças às seguintes tecnologias e comunidades:
 
 ---
 
-## �📄 Licença
+## 📄 Licença
 
 Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
 
