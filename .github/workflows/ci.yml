@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate YAML syntax
+        run: |
+          pip install yamllint
+          yamllint -d relaxed .
+
+      - name: Validate Docker Compose files
+        run: |
+          for stack in n8n-sqlite n8n-postgres-redis n8n-queue-postgres-redis; do
+            echo "Validating $stack..."
+            docker compose -f "$stack/docker-compose.yaml" config --quiet
+          done
+
+      - name: Check required files exist
+        run: |
+          for stack in n8n-sqlite n8n-postgres-redis n8n-queue-postgres-redis; do
+            test -f "$stack/.env.example" || { echo "Missing $stack/.env.example"; exit 1; }
+            test -f "$stack/docker-compose.yaml" || { echo "Missing $stack/docker-compose.yaml"; exit 1; }
+          done
+
+      - name: Validate shell scripts
+        uses: ludeeus/action-shellcheck@master
+        with:
+          scandir: '.'
+          severity: warning
