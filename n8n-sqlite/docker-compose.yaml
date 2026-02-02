@@ -1,12 +1,7 @@
 # n8n-docker-compose-exemplos-ptbr
 #   - n8n-sqlite docker compose
+# Refatorado para usar volumes nomeados (melhor persistencia)
 services:
-  n8n-init:
-    image: busybox
-    command: chown -R 1000:1000 /data
-    volumes:
-      - ./data:/data
-    restart: "no"
   n8n:
     image: n8nio/n8n:${N8N_VERSION:-latest}
     container_name: n8n
@@ -17,7 +12,8 @@ services:
     env_file:
       - .env
     volumes:
-      - ./data:/home/node/.n8n
+      - n8n_data:/home/node/.n8n
+
 # Se quiser esconder o n8n e expor atrávez de proxy, descomente a sessão networks e coloque na mesma rede do seu proxy
 # Obs: A rede deve existir previamente
 #    networks:
@@ -29,3 +25,6 @@ services:
 #    name: n8n-proxy
 #    driver: bridge
 #    external: true
+
+volumes:
+  n8n_data:
