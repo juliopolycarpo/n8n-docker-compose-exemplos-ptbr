@@ -1,0 +1,104 @@
+services:
+  n8n-postgres:
+    image: postgres:18.1-alpine
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER
+      - POSTGRES_PASSWORD
+      - POSTGRES_DB
+    volumes:
+      - n8n_queue_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h localhost -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  n8n-redis:
+    image: redis:8.4.0-alpine
+    restart: unless-stopped
+    volumes:
+      - n8n_queue_redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  n8n-main:
+    image: n8nio/n8n:${N8N_VERSION:-latest}
+    restart: unless-stopped
+    container_name: n8n-main
+    ports:
+      - "${BIND_IP:-127.0.0.1}:${BIND_PORT:-5678}:5678"
+    environment:
+      - N8N_HOST=${N8N_HOST}
+      - N8N_PORT=${N8N_PORT}
+      - N8N_PROTOCOL=${N8N_PROTOCOL}
+      - WEBHOOK_URL=${WEBHOOK_URL}
+      - GENERIC_TIMEZONE=${GENERIC_TIMEZONE}
+      - TZ=${TZ}
+      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
+      # Database Config
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=n8n-postgres
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_DATABASE=${POSTGRES_DB}
+      - DB_POSTGRESDB_USER=${POSTGRES_USER}
+      - DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD}
+      # Queue Config
+      - EXECUTIONS_MODE=${EXECUTIONS_MODE:-queue}
+      - QUEUE_BULL_REDIS_HOST=${QUEUE_BULL_REDIS_HOST:-n8n-redis}
+      - QUEUE_BULL_REDIS_PORT=${QUEUE_BULL_REDIS_PORT:-6379}
+      - QUEUE_HEALTH_CHECK_ACTIVE=true
+    env_file:
+      - .env
+    volumes:
+      - n8n_queue_data:/home/node/.n8n
+    depends_on:
+      n8n-postgres:
+        condition: service_healthy
+      n8n-redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "sh", "-c", "wget -q -T 5 -O - http://localhost:5678/healthz 2>/dev/null | grep -qF '{\"status\":\"ok\"}' || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 30
+      start_period: 60s
+
+  n8n-worker:
+    image: n8nio/n8n:${N8N_VERSION:-latest}
+    restart: unless-stopped
+    command: worker
+    container_name: n8n-worker
+    environment:
+      # Worker needs mostly same envs, specifically DB, Redis, Key, Timezone
+      - GENERIC_TIMEZONE=${GENERIC_TIMEZONE}
+      - TZ=${TZ}
+      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
+      # Database Config
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=n8n-postgres
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_DATABASE=${POSTGRES_DB}
+      - DB_POSTGRESDB_USER=${POSTGRES_USER}
+      - DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD}
+      # Queue Config (Critical for worker)
+      - EXECUTIONS_MODE=${EXECUTIONS_MODE:-queue}
+      - QUEUE_BULL_REDIS_HOST=${QUEUE_BULL_REDIS_HOST:-n8n-redis}
+      - QUEUE_BULL_REDIS_PORT=${QUEUE_BULL_REDIS_PORT:-6379}
+    env_file:
+      - .env
+    depends_on:
+      n8n-main:
+        condition: service_healthy
+      n8n-postgres:
+        condition: service_healthy
+      n8n-redis:
+        condition: service_healthy
+
+volumes:
+  n8n_queue_postgres_data:
+  n8n_queue_redis_data:
+  n8n_queue_data:
