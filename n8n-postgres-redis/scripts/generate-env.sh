@@ -27,11 +27,49 @@ N8N_HOST="localhost"
 N8N_PORT="5678"
 N8N_PROTOCOL="http"
 WEBHOOK_URL="${N8N_PROTOCOL}://${N8N_HOST}:${N8N_PORT}/"
+SECURE_COOKIE="false"
 GENERIC_TIMEZONE="America/Sao_Paulo"
 TZ="America/Sao_Paulo"
 POSTGRES_USER="n8n"
 POSTGRES_PASSWORD=$(rand_alnum 24)
 POSTGRES_DB="n8n"
+
+printf "Defina N8N_HOST (default: %s). Ex: n8n.seudominio.com\n> " "$N8N_HOST"
+read -r input
+if [ -n "$input" ]; then
+  N8N_HOST="$input"
+fi
+
+printf "Defina N8N_PROTOCOL (default: %s). Ex: http, https\n> " "$N8N_PROTOCOL"
+read -r input
+if [ -n "$input" ]; then
+  N8N_PROTOCOL="$input"
+fi
+
+WEBHOOK_URL="${N8N_PROTOCOL}://${N8N_HOST}:${N8N_PORT}/"
+printf "Defina WEBHOOK_URL (default: %s). Ex: https://n8n.seudominio.com/\n> " "$WEBHOOK_URL"
+read -r input
+if [ -n "$input" ]; then
+  WEBHOOK_URL="$input"
+fi
+
+if [ "$N8N_PROTOCOL" = "https" ]; then
+  SECURE_COOKIE="true"
+else
+  SECURE_COOKIE="false"
+fi
+printf "Defina SECURE_COOKIE (default: %s). Ex: true, false\n> " "$SECURE_COOKIE"
+read -r input
+if [ -n "$input" ]; then
+  SECURE_COOKIE="$input"
+fi
+
+telemetry_enabled="false"
+printf "Deseja ativar a telemetria? <s|N> "
+read -r telemetry_answer
+case "$(printf "%s" "$telemetry_answer" | tr '[:upper:]' '[:lower:]')" in
+  s|sim|y|yes) telemetry_enabled="true" ;;
+esac
 
 umask 077
 cat > "$env_file" <<ENV
@@ -43,11 +81,17 @@ N8N_HOST=$N8N_HOST
 N8N_PORT=$N8N_PORT
 N8N_PROTOCOL=$N8N_PROTOCOL
 WEBHOOK_URL=$WEBHOOK_URL
+SECURE_COOKIE=$SECURE_COOKIE
 GENERIC_TIMEZONE=$GENERIC_TIMEZONE
 TZ=$TZ
 POSTGRES_USER=$POSTGRES_USER
 POSTGRES_PASSWORD=$POSTGRES_PASSWORD
 POSTGRES_DB=$POSTGRES_DB
+
+# Telemetria e conexoes externas
+N8N_DIAGNOSTICS_ENABLED=$telemetry_enabled
+N8N_VERSION_NOTIFICATIONS_ENABLED=$telemetry_enabled
+N8N_TEMPLATES_ENABLED=$telemetry_enabled
 ENV
 
 echo "Gerado: $env_file"
