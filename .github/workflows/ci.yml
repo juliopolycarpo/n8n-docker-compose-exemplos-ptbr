@@ -21,6 +21,7 @@ jobs:
         run: |
           for stack in n8n-sqlite n8n-postgres-redis n8n-queue-postgres-redis; do
             echo "Validating $stack..."
+            "$stack/scripts/generate-env.sh"
             docker compose -f "$stack/docker-compose.yaml" config --quiet
           done
 
