@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 set -eu
 
-base_dir=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+base_dir=$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)
 env_file="$base_dir/.env"
 
 if [ -f "$env_file" ] && [ "${FORCE:-}" != "1" ]; then

@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 set -eu
 
-base_dir=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+base_dir=$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)
 compose_file="$base_dir/docker-compose.yaml"
 
 if ! command -v docker >/dev/null 2>&1; then
