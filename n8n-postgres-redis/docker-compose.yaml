@@ -28,7 +28,7 @@ services:
   n8n-main:
     image: n8nio/n8n:${N8N_VERSION:-latest}
     restart: unless-stopped
-    container_name: n8n
+    container_name: n8n-main
     ports:
       - "${BIND_IP:-127.0.0.1}:${BIND_PORT:-5678}:5678"
     environment:

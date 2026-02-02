@@ -1,7 +1,7 @@
 services:
-  n8n:
+  n8n-main:
     image: n8nio/n8n:${N8N_VERSION:-latest}
-    container_name: n8n
+    container_name: n8n-main
     restart: unless-stopped
     # Se quiser esconder o n8n e expor atrávez de proxy, comente ou remova a sessão ports
     ports:

@@ -1,28 +1,50 @@
 #!/usr/bin/env sh
 set -eu
 
-base_dir=$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)
-compose_file="$base_dir/docker-compose.yaml"
+stack_dir=$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)
+compose_path="$stack_dir/docker-compose.yaml"
 
-if ! command -v docker >/dev/null 2>&1; then
-  echo "docker nao encontrado no PATH." >&2
+fail() {
+  printf '%s\n' "$*" >&2
   exit 1
-fi
+}
 
-if [ ! -f "$compose_file" ]; then
-  echo "docker-compose.yaml nao encontrado em: $base_dir" >&2
-  exit 1
-fi
+is_interactive() {
+  [ -t 0 ]
+}
 
-if [ "${FORCE:-}" != "1" ]; then
-  printf "Isto vai remover os volumes nomeados desta stack (%s). Continuar? [y/N] " "$base_dir" >&2
-  read -r answer
+ensure_command() {
+  command -v "$1" >/dev/null 2>&1 || fail "$1 nao encontrado no PATH."
+}
+
+ensure_file() {
+  [ -f "$1" ] || fail "docker-compose.yaml nao encontrado em: $stack_dir"
+}
+
+confirm_volume_removal() {
+  if [ "${FORCE:-}" = "1" ]; then
+    return 0
+  fi
+
+  if ! is_interactive; then
+    fail "FORCE=1 necessario para executar sem TTY."
+  fi
+
+  printf "Isto vai remover os volumes nomeados desta stack (%s). Continuar? [y/N] " "$stack_dir" >&2
+  if ! IFS= read -r answer; then
+    fail "Entrada nao disponivel."
+  fi
+
   case "$answer" in
     y|Y|yes|YES) ;;
-    *) echo "Cancelado." >&2; exit 1 ;;
+    *) fail "Cancelado." ;;
   esac
-fi
+}
 
-docker compose -f "$compose_file" down -v
+ensure_command docker
+ensure_file "$compose_path"
+confirm_volume_removal
 
-echo "Volumes removidos para a stack: $base_dir"
+docker compose -f "$compose_path" down -v
+
+printf 'Volumes removidos para a stack: %s\n' "$stack_dir"
