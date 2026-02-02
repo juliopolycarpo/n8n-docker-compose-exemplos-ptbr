@@ -35,6 +35,8 @@ Este repositório contém **exemplos prontos e documentados** de configurações
 | Exemplo | Descrição | Complexidade |
 |---------|-----------|--------------|
 | [`n8n-sqlite`](./n8n-sqlite/) | Instalação básica com SQLite | ⭐ Iniciante |
+| [`n8n-postgres-redis`](./n8n-postgres-redis/) | n8n com PostgreSQL e Redis (fila/cache) | ⭐⭐ Intermediário |
+| [`n8n-queue-postgres-redis`](./n8n-queue-postgres-redis/) | Modo Queue (Scalable) com Workers, Postgres, Redis | ⭐⭐⭐ Avançado |
 
 > 📝 **Nota:** Mais exemplos serão adicionados em breve! Fique de olho nas atualizações.
 
@@ -56,17 +58,17 @@ Este repositório contém **exemplos prontos e documentados** de configurações
    ```
 
 2. **Escolha um exemplo e entre na pasta:**
-   ```bash
    cd n8n-sqlite
    ```
 
 3. **Configure as variáveis de ambiente:**
    ```bash
-   # Edite o arquivo .env com suas configurações
-   nano .env   # ou use seu editor preferido
-   ```
+   # Gere o arquivo .env automaticamente
+   ./scripts/generate-env.sh
    
-   > 💡 **Dica:** Consulte o arquivo `.env.example` para ver exemplos detalhados de cada variável.
+   # Opcional: Edite para personalizar
+   nano .env
+   ```
 
 4. **Inicie o n8n:**
    ```bash
@@ -86,14 +88,25 @@ Este repositório contém **exemplos prontos e documentados** de configurações
 n8n-docker-compose-exemplos-ptbr/
 ├── n8n-sqlite/                 # Exemplo básico com SQLite
 │   ├── docker-compose.yaml     # Configuração do container
-│   ├── .env                    # Variáveis de ambiente (edite este!)
-│   └── .env.example            # Referência com exemplos detalhados
+│   ├── .env                    # Variáveis de ambiente
+│   ├── .env.example            # Referência com exemplos detalhados
+│   └── scripts/                # Scripts auxiliares (geração de .env)
+├── n8n-postgres-redis/         # PostgreSQL + Redis
+│   ├── docker-compose.yaml
+│   ├── .env
+│   ├── .env.example
+│   └── scripts/
+├── n8n-queue-postgres-redis/   # Modo Queue (Workers)
+│   ├── docker-compose.yaml
+│   ├── .env
+│   ├── .env.example
+│   └── scripts/
 └── README.md
 ```
 
 | Arquivo | Propósito |
 |---------|----------|
-| `.env` | Configuração ativa - **edite este arquivo** |
+| `.env` | Configuração ativa (gerado pelo script) |
 | `.env.example` | Referência com exemplos e explicações detalhadas |
 
 ---
