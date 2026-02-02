@@ -1,0 +1,53 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create release archives
+        run: |
+          for stack in n8n-sqlite n8n-postgres-redis n8n-queue-postgres-redis; do
+            tar -czvf "${stack}.tar.gz" "$stack"
+            zip -r "${stack}.zip" "$stack"
+          done
+          sha256sum n8n-*.tar.gz n8n-*.zip > SHA256SUMS
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          body: |
+            ## Resumo
+            Exemplos de Docker Compose para rodar n8n em PT-BR.
+
+            ## Stacks disponiveis
+            - n8n-sqlite: n8n com SQLite (simples, tudo em um container).
+            - n8n-postgres-redis: n8n com Postgres + Redis (fila e performance).
+            - n8n-queue-postgres-redis: n8n com modo fila + worker.
+
+            ## Como usar
+            1. Baixe o .tar.gz ou .zip da stack desejada.
+            2. Extraia os arquivos.
+            3. Rode `./scripts/generate-env.sh` (ou `FORCE=1`).
+            4. Suba com `docker compose up -d`.
+
+            ## Checksums
+            Verifique com `sha256sum -c SHA256SUMS`.
+          files: |
+            n8n-sqlite.tar.gz
+            n8n-sqlite.zip
+            n8n-postgres-redis.tar.gz
+            n8n-postgres-redis.zip
+            n8n-queue-postgres-redis.tar.gz
+            n8n-queue-postgres-redis.zip
+            SHA256SUMS
+          generate_release_notes: true
