@@ -1,0 +1,70 @@
+services:
+  n8n-postgres:
+    image: postgres:18.1-alpine
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER
+      - POSTGRES_PASSWORD
+      - POSTGRES_DB
+    volumes:
+      - n8n_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h localhost -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  n8n-redis:
+    image: redis:8.4.0-alpine
+    restart: unless-stopped
+    volumes:
+      - n8n_redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  n8n-main:
+    image: n8nio/n8n:${N8N_VERSION:-latest}
+    restart: unless-stopped
+    container_name: n8n
+    ports:
+      - "${BIND_IP:-127.0.0.1}:${BIND_PORT:-5678}:5678"
+    environment:
+      - N8N_HOST=${N8N_HOST}
+      - N8N_PORT=${N8N_PORT}
+      - N8N_PROTOCOL=${N8N_PROTOCOL}
+      - WEBHOOK_URL=${WEBHOOK_URL}
+      - GENERIC_TIMEZONE=${GENERIC_TIMEZONE}
+      - TZ=${TZ}
+      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
+      # Database Config
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=n8n-postgres
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_DATABASE=${POSTGRES_DB}
+      - DB_POSTGRESDB_USER=${POSTGRES_USER}
+      - DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD}
+      # Redis (Optional in single mode, but good to have ready)
+      # - EXECUTIONS_MODE=regular
+    env_file:
+      - .env
+    volumes:
+      - n8n_data:/home/node/.n8n
+    depends_on:
+      n8n-postgres:
+        condition: service_healthy
+      n8n-redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-T", "5", "--spider", "http://localhost:5678/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+volumes:
+  n8n_postgres_data:
+  n8n_redis_data:
+  n8n_data:
